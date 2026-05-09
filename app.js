@@ -639,24 +639,30 @@ function drawZodiacWheel(drawingContext, x, y, radius, colors) {
 }
 
 function drawMiniCards(drawingContext, cards, x, y, width, height, colors) {
-  const gap = 18;
+  const gap = 14;
   const cardWidth = (width - gap * 2) / 3;
   cards.forEach((card, index) => {
     const cardX = x + index * (cardWidth + gap);
     fillRoundedRect(drawingContext, cardX, y, cardWidth, height, 14, "rgba(255, 250, 240, 0.05)");
     strokeRoundedRect(drawingContext, cardX, y, cardWidth, height, 14, "rgba(238, 201, 132, 0.74)", 2);
     drawingContext.fillStyle = colors.gold;
-    drawingContext.font = "700 22px Georgia, serif";
+    drawingContext.font = "700 20px Georgia, serif";
     drawingContext.textAlign = "center";
-    drawingContext.fillText(String(index + 1), cardX + cardWidth / 2, y + 40);
+    drawingContext.fillText(String(index + 1), cardX + cardWidth / 2, y + 32);
     drawingContext.fillStyle = colors.cream;
-    drawingContext.font = "700 24px Georgia, serif";
-    wrapText(drawingContext, card.name, cardX + 18, y + 88, cardWidth - 36, 28, 2);
-    drawingContext.fillStyle = colors.muted;
-    drawingContext.font = "18px Arial, sans-serif";
-    wrapText(drawingContext, card.element, cardX + 18, y + height - 32, cardWidth - 36, 22, 1);
+    drawingContext.font = "700 18px Georgia, serif";
     drawingContext.textAlign = "left";
+    wrapText(drawingContext, card.name, cardX + 14, y + 66, cardWidth - 28, 22, 2);
   });
+}
+
+function drawCompactField(drawingContext, label, value, x, y, maxWidth, colors, maxLines = 1) {
+  drawingContext.fillStyle = colors.gold;
+  drawingContext.font = "700 18px Arial, sans-serif";
+  drawingContext.fillText(label.toUpperCase(), x, y);
+  drawingContext.fillStyle = colors.cream;
+  drawingContext.font = "20px Georgia, serif";
+  return wrapText(drawingContext, value, x, y + 28, maxWidth, 25, maxLines) + 4;
 }
 
 function drawField(drawingContext, label, value, x, y, maxWidth, colors, maxLines = 2) {
@@ -718,35 +724,35 @@ function makeReadingReportCanvas(reading) {
   drawingContext.fillText("1/1", width - 130, 116);
   drawingContext.textAlign = "left";
 
-  drawReportPanel(drawingContext, 72, 244, 390, 340, "Reading Details", colors);
+  drawReportPanel(drawingContext, 72, 244, 390, 420, "Reading Details", colors);
   let cursorY = 326;
-  cursorY = drawField(drawingContext, "Name", reading.name, 106, cursorY, 320, colors, 1);
-  cursorY = drawField(drawingContext, "Focus", reading.focus, 106, cursorY, 320, colors, 1);
-  cursorY = drawField(drawingContext, "Mood", reading.mood, 106, cursorY, 320, colors, 1);
-  cursorY = drawField(drawingContext, "Timing", reading.zodiac, 106, cursorY, 320, colors, 1);
-  cursorY = drawField(drawingContext, "Question", reading.question, 106, cursorY, 320, colors, 3);
+  cursorY = drawCompactField(drawingContext, "Name", reading.name, 106, cursorY, 320, colors, 1);
+  cursorY = drawCompactField(drawingContext, "Focus", reading.focus, 106, cursorY, 320, colors, 1);
+  cursorY = drawCompactField(drawingContext, "Mood", reading.mood, 106, cursorY, 320, colors, 1);
+  cursorY = drawCompactField(drawingContext, "Timing", reading.zodiac, 106, cursorY, 320, colors, 1);
+  cursorY = drawCompactField(drawingContext, "Question", reading.question, 106, cursorY, 320, colors, 3);
 
-  drawReportPanel(drawingContext, 492, 244, 456, 340, "Oracle Map", colors);
-  drawZodiacWheel(drawingContext, 720, 388, 120, colors);
-  drawMiniCards(drawingContext, reading.cards, 540, 512, 360, 92, colors);
+  drawReportPanel(drawingContext, 492, 244, 456, 420, "Oracle Map", colors);
+  drawZodiacWheel(drawingContext, 720, 394, 105, colors);
+  drawMiniCards(drawingContext, reading.cards, 536, 526, 368, 100, colors);
 
-  drawReportPanel(drawingContext, 978, 244, 390, 340, "Essence", colors);
+  drawReportPanel(drawingContext, 978, 244, 390, 420, "Essence", colors);
   drawingContext.fillStyle = colors.cream;
   drawingContext.font = "700 34px Georgia, serif";
   wrapText(drawingContext, reading.archetype.name, 1016, 330, 318, 38, 2);
   drawingContext.fillStyle = colors.muted;
   drawingContext.font = "23px Georgia, serif";
-  wrapText(drawingContext, reading.mainMessage, 1016, 424, 318, 32, 5);
+  wrapText(drawingContext, reading.mainMessage, 1016, 424, 318, 32, 4);
   drawingContext.fillStyle = colors.gold;
-  drawingContext.font = "700 21px Arial, sans-serif";
-  drawingContext.fillText(`Lucky: ${reading.color} / ${reading.number} / ${reading.timing}`, 1016, 538);
+  drawingContext.font = "700 19px Arial, sans-serif";
+  wrapText(drawingContext, `Lucky: ${reading.color} / ${reading.number} / ${reading.timing}`, 1016, 576, 318, 25, 2);
 
-  const cardY = 622;
+  const cardY = 704;
   const cardGap = 22;
   const cardWidth = (width - 144 - cardGap * 2) / 3;
   reading.cards.forEach((card, index) => {
     const x = 72 + index * (cardWidth + cardGap);
-    drawReportPanel(drawingContext, x, cardY, cardWidth, 332, `Card ${index + 1}`, colors);
+    drawReportPanel(drawingContext, x, cardY, cardWidth, 300, `Card ${index + 1}`, colors);
     drawingContext.fillStyle = colors.gold;
     drawingContext.font = "700 23px Arial, sans-serif";
     drawingContext.fillText(card.element.toUpperCase(), x + 34, cardY + 100);
@@ -755,37 +761,37 @@ function makeReadingReportCanvas(reading) {
     wrapText(drawingContext, card.name, x + 34, cardY + 146, cardWidth - 68, 39, 2);
     drawingContext.fillStyle = colors.muted;
     drawingContext.font = "23px Georgia, serif";
-    wrapText(drawingContext, card.message, x + 34, cardY + 230, cardWidth - 68, 32, 3);
+    wrapText(drawingContext, card.message, x + 34, cardY + 222, cardWidth - 68, 32, 3);
   });
 
-  drawReportPanel(drawingContext, 72, 994, 626, 292, "Actionable Insight", colors);
+  drawReportPanel(drawingContext, 72, 1044, 626, 260, "Actionable Insight", colors);
   drawingContext.fillStyle = colors.cream;
-  drawingContext.font = "27px Georgia, serif";
-  wrapText(drawingContext, reading.weekMessage, 112, 1080, 546, 38, 4);
+  drawingContext.font = "25px Georgia, serif";
+  wrapText(drawingContext, reading.weekMessage, 112, 1128, 546, 34, 4);
   drawingContext.fillStyle = colors.gold;
   drawingContext.font = "700 22px Arial, sans-serif";
-  drawingContext.fillText("Try this today", 112, 1230);
+  drawingContext.fillText("Try this today", 112, 1244);
 
-  drawReportPanel(drawingContext, 742, 994, 626, 292, "Deeper Reflection", colors);
+  drawReportPanel(drawingContext, 742, 1044, 626, 260, "Deeper Reflection", colors);
   drawingContext.fillStyle = colors.muted;
-  drawingContext.font = "24px Georgia, serif";
-  wrapText(drawingContext, `${reading.archetype.text} ${reading.cards[0].message} ${reading.cards[1].message}`, 782, 1080, 546, 34, 5);
+  drawingContext.font = "23px Georgia, serif";
+  wrapText(drawingContext, `${reading.archetype.text} ${reading.cards[0].message} ${reading.cards[1].message}`, 782, 1128, 546, 32, 5);
 
-  drawReportPanel(drawingContext, 72, 1326, 1296, 260, "Daily Ritual", colors);
+  drawReportPanel(drawingContext, 72, 1340, 1296, 240, "Daily Ritual", colors);
   drawBulletList(drawingContext, [
     reading.ritual,
     "Save this report, then return to the question when your body feels calmer.",
     "Use this as reflection, not certainty.",
-  ], 118, 1410, 1188, colors, 2);
+  ], 118, 1422, 1188, colors, 2);
 
-  drawReportPanel(drawingContext, 72, 1624, 1296, 176, "Gentle Boundary", colors);
+  drawReportPanel(drawingContext, 72, 1618, 1296, 176, "Gentle Boundary", colors);
   drawingContext.fillStyle = colors.muted;
   drawingContext.font = "23px Georgia, serif";
   wrapText(
     drawingContext,
     "Moonveil Oracle is for entertainment, journaling, and self-reflection. It does not promise love, money, healing, legal outcomes, investment returns, safety decisions, pregnancy, or contact from a specific person.",
     118,
-    1708,
+    1698,
     1188,
     32,
     3
@@ -794,10 +800,10 @@ function makeReadingReportCanvas(reading) {
   drawingContext.textAlign = "center";
   drawingContext.fillStyle = colors.gold;
   drawingContext.font = "700 24px Georgia, serif";
-  drawingContext.fillText("Generated by Moonveil Oracle", width / 2, 1856);
+  drawingContext.fillText("Generated by Moonveil Oracle", width / 2, 1846);
   drawingContext.fillStyle = "rgba(255, 244, 223, 0.62)";
   drawingContext.font = "18px Arial, sans-serif";
-  drawingContext.fillText("https://kjs-digital.github.io/moonveil-oracle.github.io/", width / 2, 1888);
+  drawingContext.fillText("https://kjs-digital.github.io/moonveil-oracle.github.io/", width / 2, 1874);
   drawingContext.textAlign = "left";
 
   return reportCanvas;
