@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kjs-digital.github.io/moonveil-oracle.github.io/sitemap.xml
