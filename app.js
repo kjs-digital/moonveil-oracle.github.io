@@ -166,6 +166,7 @@ const downloadImageButton = document.querySelector("#downloadImageButton");
 const downloadPdfButton = document.querySelector("#downloadPdfButton");
 const shareImageButton = document.querySelector("#shareImageButton");
 const sharePlatformButtons = document.querySelectorAll("[data-share-platform]");
+const crowdfundingButtons = document.querySelectorAll("[data-crowdfunding-action]");
 const readingLoader = document.querySelector("#readingLoader");
 const loaderTitle = document.querySelector("#loaderTitle");
 const loaderText = document.querySelector("#loaderText");
@@ -974,6 +975,38 @@ function shareToPlatform(platform) {
   openShareWindow(shareUrl);
 }
 
+async function handleCrowdfundingAction(action) {
+  trackEvent("crowdfunding_click", {
+    action,
+  });
+
+  const message = "Moonveil Oracle is preparing an international crowdfunding campaign to build privacy-first AI tarot and astrology readings.";
+
+  if (action === "share") {
+    const payload = {
+      title: "Help build Moonveil Oracle AI",
+      text: message,
+      url: publicSiteUrl,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(payload);
+        showToast("Share sheet opened");
+        return;
+      } catch {
+        // Fall through to copy fallback.
+      }
+    }
+
+    await copyText(`${message} ${publicSiteUrl}`);
+    showToast("Vision copied");
+    return;
+  }
+
+  showToast("Crowdfunding page coming soon");
+}
+
 function saveReadingAsPdf() {
   const reading = getActiveReading();
   if (!reading) return;
@@ -1143,6 +1176,12 @@ if (shareImageButton) {
 sharePlatformButtons.forEach((button) => {
   button.addEventListener("click", () => {
     shareToPlatform(button.dataset.sharePlatform);
+  });
+});
+
+crowdfundingButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    handleCrowdfundingAction(button.dataset.crowdfundingAction);
   });
 });
 
