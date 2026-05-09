@@ -164,6 +164,8 @@ const copyReadingButton = document.querySelector("#copyReadingButton");
 const saveReadingButton = document.querySelector("#saveReadingButton");
 const downloadImageButton = document.querySelector("#downloadImageButton");
 const downloadPdfButton = document.querySelector("#downloadPdfButton");
+const shareImageButton = document.querySelector("#shareImageButton");
+const sharePlatformButtons = document.querySelectorAll("[data-share-platform]");
 const readingLoader = document.querySelector("#readingLoader");
 const loaderTitle = document.querySelector("#loaderTitle");
 const loaderText = document.querySelector("#loaderText");
@@ -176,6 +178,9 @@ let stars = [];
 let pointerX = 0.5;
 let pointerY = 0.5;
 let revealTimer = 0;
+
+const publicSiteUrl = "https://kjs-digital.github.io/moonveil-oracle.github.io/";
+const publicHeroImageUrl = `${publicSiteUrl}assets/moonveil-hero.png`;
 
 const loaderStages = [
   {
@@ -197,6 +202,14 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.add("is-visible");
   window.setTimeout(() => toast.classList.remove("is-visible"), 1800);
+}
+
+function trackEvent(eventName, params = {}) {
+  if (typeof window.gtag !== "function") return;
+  window.gtag("event", eventName, {
+    app_name: "Moonveil Oracle",
+    ...params,
+  });
 }
 
 function setLoadingStage(stageIndex) {
@@ -812,7 +825,61 @@ function makeReadingReportCanvas(reading) {
   return reportCanvas;
 }
 
-function downloadReadingImage() {
+function canvasToBlob(canvas) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error("Image generation failed"));
+      }
+    }, "image/png");
+  });
+}
+
+function getShareContext(reading) {
+  const title = `${reading.name}'s ${reading.focus} reading | Moonveil Oracle`;
+  const text = `I revealed a free AI tarot and astrology reading on Moonveil Oracle. ${reading.mainMessage}`;
+  return {
+    title,
+    text,
+    url: publicSiteUrl,
+    image: publicHeroImageUrl,
+  };
+}
+
+function openShareWindow(url) {
+  const popup = window.open(url, "_blank", "width=720,height=720");
+  if (!popup) {
+    showToast("Allow pop-ups to share");
+    return;
+  }
+  popup.opener = null;
+}
+
+function getShareUrl(platform, contextData) {
+  const encodedUrl = encodeURIComponent(contextData.url);
+  const encodedTitle = encodeURIComponent(contextData.title);
+  const encodedText = encodeURIComponent(contextData.text);
+  const textWithUrl = encodeURIComponent(`${contextData.text} ${contextData.url}`);
+  const encodedImage = encodeURIComponent(contextData.image);
+
+  const urls = {
+    x: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    threads: `https://www.threads.net/intent/post?text=${textWithUrl}`,
+    reddit: `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`,
+    pinterest: `https://www.pinterest.com/pin/create/button/?url=${encodedUrl}&media=${encodedImage}&description=${encodedText}`,
+    whatsapp: `https://api.whatsapp.com/send?text=${textWithUrl}`,
+    telegram: `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`,
+    bluesky: `https://bsky.app/intent/compose?text=${textWithUrl}`,
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+  };
+
+  return urls[platform] || "";
+}
+
+function downloadGeneratedImage(source = "button") {
   const reading = getActiveReading();
   if (!reading) return;
   const reportCanvas = makeReadingReportCanvas(reading);
@@ -822,7 +889,89 @@ function downloadReadingImage() {
   document.body.append(link);
   link.click();
   link.remove();
+  trackEvent("reading_image_download", {
+    focus: reading.focus,
+    mood: reading.mood,
+    source,
+  });
   showToast("Reading image downloaded");
+}
+
+function downloadReadingImage() {
+  downloadGeneratedImage("download_button");
+}
+
+async function shareGeneratedImage(platform = "native") {
+  const reading = getActiveReading();
+  if (!reading) return;
+  const reportCanvas = makeReadingReportCanvas(reading);
+  const shareContext = getShareContext(reading);
+  const filename = `moonveil-oracle-${slugify(reading.name)}.png`;
+
+  try {
+    const blob = await canvasToBlob(reportCanvas);
+    const file = new File([blob], filename, { type: "image/png" });
+    const payload = {
+      title: shareContext.title,
+      text: shareContext.text,
+      files: [file],
+    };
+
+    if (navigator.canShare && navigator.canShare(payload) && navigator.share) {
+      await navigator.share(payload);
+      trackEvent("reading_image_share", {
+        platform,
+        focus: reading.focus,
+        method: "native_file",
+      });
+      showToast("Share sheet opened");
+      return;
+    }
+  } catch {
+    // Fall through to the browser fallback below.
+  }
+
+  await copyText(`${shareContext.text} ${shareContext.url}`);
+  downloadGeneratedImage(`share_${platform}_fallback`);
+  trackEvent("reading_image_share", {
+    platform,
+    focus: reading.focus,
+    method: "download_copy_fallback",
+  });
+
+  const fallbackUrls = {
+    instagram: "https://www.instagram.com/",
+    tiktok: "https://www.tiktok.com/upload",
+    snapchat: "https://www.snapchat.com/",
+  };
+
+  if (fallbackUrls[platform]) {
+    openShareWindow(fallbackUrls[platform]);
+    showToast("Image saved and caption copied");
+  } else {
+    showToast("Image saved and share text copied");
+  }
+}
+
+function shareToPlatform(platform) {
+  const reading = getActiveReading();
+  if (!reading) return;
+
+  if (["instagram", "tiktok", "snapchat"].includes(platform)) {
+    shareGeneratedImage(platform);
+    return;
+  }
+
+  const shareContext = getShareContext(reading);
+  const shareUrl = getShareUrl(platform, shareContext);
+  if (!shareUrl) return;
+
+  trackEvent("reading_share", {
+    platform,
+    focus: reading.focus,
+    method: "share_url",
+  });
+  openShareWindow(shareUrl);
 }
 
 function saveReadingAsPdf() {
@@ -836,6 +985,11 @@ function saveReadingAsPdf() {
     showToast("Allow pop-ups to save PDF");
     return;
   }
+
+  trackEvent("reading_pdf_open", {
+    focus: reading.focus,
+    mood: reading.mood,
+  });
 
   printWindow.document.write(`
     <!doctype html>
@@ -963,6 +1117,10 @@ if (copyReadingButton) {
   copyReadingButton.addEventListener("click", async () => {
     try {
       await copyText(latestReadingText);
+      const reading = getActiveReading();
+      trackEvent("reading_copy", {
+        focus: reading ? reading.focus : "unknown",
+      });
       showToast("Full reading copied");
     } catch {
       showToast("Copy failed");
@@ -978,9 +1136,23 @@ if (downloadPdfButton) {
   downloadPdfButton.addEventListener("click", saveReadingAsPdf);
 }
 
+if (shareImageButton) {
+  shareImageButton.addEventListener("click", () => shareGeneratedImage("native"));
+}
+
+sharePlatformButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    shareToPlatform(button.dataset.sharePlatform);
+  });
+});
+
 if (saveReadingButton) {
   saveReadingButton.addEventListener("click", () => {
     localStorage.setItem("moonveil:lastReading", latestReadingText);
+    const reading = getActiveReading();
+    trackEvent("reading_save_local", {
+      focus: reading ? reading.focus : "unknown",
+    });
     showToast("Saved in this browser");
   });
 }
