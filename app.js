@@ -159,6 +159,7 @@ const rituals = [
 
 const toast = document.querySelector("#toast");
 const form = document.querySelector("#oracleForm");
+const contactForm = document.querySelector("#contactForm");
 const sampleButton = document.querySelector("#sampleButton");
 const copyReadingButton = document.querySelector("#copyReadingButton");
 const saveReadingButton = document.querySelector("#saveReadingButton");
@@ -1007,6 +1008,41 @@ async function handleCrowdfundingAction(action) {
   showToast("Crowdfunding page coming soon");
 }
 
+function handleContactSubmit(event) {
+  event.preventDefault();
+  const data = new FormData(contactForm);
+  const name = String(data.get("contactName") || "").trim();
+  const email = String(data.get("contactEmail") || "").trim();
+  const topic = String(data.get("contactTopic") || "General question");
+  const message = String(data.get("contactMessage") || "").trim();
+
+  if (!name || !email || !message) {
+    showToast("Please complete the form");
+    return;
+  }
+
+  const subject = `Moonveil Oracle inquiry: ${topic}`;
+  const body = [
+    `Name: ${name}`,
+    `Email: ${email}`,
+    `Topic: ${topic}`,
+    "",
+    "Message:",
+    message,
+    "",
+    `Page: ${publicSiteUrl}`,
+  ].join("\n");
+
+  const mailtoUrl = `mailto:kjsdigitalmarketing@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+  trackEvent("contact_submit_mailto", {
+    topic,
+  });
+
+  window.location.href = mailtoUrl;
+  showToast("Email app opened");
+}
+
 function saveReadingAsPdf() {
   const reading = getActiveReading();
   if (!reading) return;
@@ -1133,6 +1169,10 @@ if (form) {
     const reading = buildReading(collectFormData());
     openReadingWithCeremony(reading);
   });
+}
+
+if (contactForm) {
+  contactForm.addEventListener("submit", handleContactSubmit);
 }
 
 if (sampleButton) {

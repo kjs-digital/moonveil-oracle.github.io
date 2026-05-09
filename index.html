@@ -92,6 +92,7 @@
           <a href="#examples">Examples</a>
           <a href="#rituals">Ritual</a>
           <a href="#support">Support</a>
+          <a href="#contact">Contact</a>
           <a href="#faq">FAQ</a>
         </nav>
         <a class="topbar-cta" href="#reading">Start free reading</a>
@@ -424,6 +425,52 @@
           </div>
         </section>
 
+        <section class="contact-band" id="contact">
+          <div class="contact-grid">
+            <div class="contact-copy">
+              <p class="eyebrow">Contact</p>
+              <h2>Questions, partnerships, or crowdfunding ideas?</h2>
+              <p>
+                Send a message to KJS Digital Marketing about Moonveil Oracle, collaborations,
+                sponsorship, press, or the upcoming AI upgrade campaign.
+              </p>
+              <a class="contact-email" href="mailto:kjsdigitalmarketing@gmail.com">
+                kjsdigitalmarketing@gmail.com
+              </a>
+            </div>
+
+            <form class="contact-form" id="contactForm">
+              <label>
+                Name
+                <input name="contactName" type="text" maxlength="80" required />
+              </label>
+              <label>
+                Email
+                <input name="contactEmail" type="email" maxlength="120" required />
+              </label>
+              <label>
+                Topic
+                <select name="contactTopic">
+                  <option>General question</option>
+                  <option>Crowdfunding</option>
+                  <option>Partnership</option>
+                  <option>Sponsorship</option>
+                  <option>Technical issue</option>
+                </select>
+              </label>
+              <label>
+                Message
+                <textarea name="contactMessage" rows="5" maxlength="1200" required></textarea>
+              </label>
+              <button class="primary-button" type="submit">Send inquiry</button>
+              <p class="contact-note">
+                This opens your email app with the message filled in. The message is only sent if
+                you choose to send it from your email account.
+              </p>
+            </form>
+          </div>
+        </section>
+
         <section class="content-band" id="faq">
           <div class="section-heading">
             <p class="eyebrow">A softer kind of oracle</p>
@@ -482,6 +529,6 @@
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite">Saved</div>
-    <script src="app.js?v=20260510-funding"></script>
+    <script src="app.js?v=20260510-contact"></script>
   </body>
 </html>
