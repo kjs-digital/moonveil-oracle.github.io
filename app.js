@@ -724,77 +724,80 @@ function makeReadingReportCanvas(reading) {
   drawingContext.fillText("1/1", width - 130, 116);
   drawingContext.textAlign = "left";
 
-  drawReportPanel(drawingContext, 72, 244, 390, 420, "Reading Details", colors);
+  drawReportPanel(drawingContext, 72, 244, 390, 330, "Reading Details", colors);
   let cursorY = 326;
   cursorY = drawCompactField(drawingContext, "Name", reading.name, 106, cursorY, 320, colors, 1);
   cursorY = drawCompactField(drawingContext, "Focus", reading.focus, 106, cursorY, 320, colors, 1);
   cursorY = drawCompactField(drawingContext, "Mood", reading.mood, 106, cursorY, 320, colors, 1);
-  cursorY = drawCompactField(drawingContext, "Timing", reading.zodiac, 106, cursorY, 320, colors, 1);
-  cursorY = drawCompactField(drawingContext, "Question", reading.question, 106, cursorY, 320, colors, 3);
+  drawCompactField(drawingContext, "Timing", reading.zodiac, 106, cursorY, 320, colors, 1);
 
-  drawReportPanel(drawingContext, 492, 244, 456, 420, "Oracle Map", colors);
-  drawZodiacWheel(drawingContext, 720, 394, 105, colors);
-  drawMiniCards(drawingContext, reading.cards, 536, 526, 368, 100, colors);
+  drawReportPanel(drawingContext, 492, 244, 456, 330, "Oracle Map", colors);
+  drawZodiacWheel(drawingContext, 720, 420, 118, colors);
 
-  drawReportPanel(drawingContext, 978, 244, 390, 420, "Essence", colors);
+  drawReportPanel(drawingContext, 978, 244, 390, 330, "Essence", colors);
   drawingContext.fillStyle = colors.cream;
-  drawingContext.font = "700 34px Georgia, serif";
-  wrapText(drawingContext, reading.archetype.name, 1016, 330, 318, 38, 2);
+  drawingContext.font = "700 32px Georgia, serif";
+  wrapText(drawingContext, reading.archetype.name, 1016, 330, 318, 36, 2);
   drawingContext.fillStyle = colors.muted;
-  drawingContext.font = "23px Georgia, serif";
-  wrapText(drawingContext, reading.mainMessage, 1016, 424, 318, 32, 4);
+  drawingContext.font = "22px Georgia, serif";
+  wrapText(drawingContext, reading.mainMessage, 1016, 420, 318, 30, 4);
   drawingContext.fillStyle = colors.gold;
-  drawingContext.font = "700 19px Arial, sans-serif";
-  wrapText(drawingContext, `Lucky: ${reading.color} / ${reading.number} / ${reading.timing}`, 1016, 576, 318, 25, 2);
+  drawingContext.font = "700 18px Arial, sans-serif";
+  wrapText(drawingContext, `Lucky: ${reading.color} / ${reading.number} / ${reading.timing}`, 1016, 532, 318, 24, 2);
 
-  const cardY = 704;
+  drawReportPanel(drawingContext, 72, 610, 1296, 156, "Question", colors);
+  drawingContext.fillStyle = colors.cream;
+  drawingContext.font = "26px Georgia, serif";
+  wrapText(drawingContext, reading.question, 112, 696, 1216, 34, 2);
+
+  const cardY = 810;
   const cardGap = 22;
   const cardWidth = (width - 144 - cardGap * 2) / 3;
   reading.cards.forEach((card, index) => {
     const x = 72 + index * (cardWidth + cardGap);
-    drawReportPanel(drawingContext, x, cardY, cardWidth, 300, `Card ${index + 1}`, colors);
+    drawReportPanel(drawingContext, x, cardY, cardWidth, 306, `Card ${index + 1}`, colors);
     drawingContext.fillStyle = colors.gold;
-    drawingContext.font = "700 23px Arial, sans-serif";
-    drawingContext.fillText(card.element.toUpperCase(), x + 34, cardY + 100);
+    drawingContext.font = "700 21px Arial, sans-serif";
+    drawingContext.fillText(card.element.toUpperCase(), x + 34, cardY + 96);
     drawingContext.fillStyle = colors.cream;
-    drawingContext.font = "700 34px Georgia, serif";
-    wrapText(drawingContext, card.name, x + 34, cardY + 146, cardWidth - 68, 39, 2);
+    drawingContext.font = "700 32px Georgia, serif";
+    wrapText(drawingContext, card.name, x + 34, cardY + 140, cardWidth - 68, 36, 2);
     drawingContext.fillStyle = colors.muted;
-    drawingContext.font = "23px Georgia, serif";
-    wrapText(drawingContext, card.message, x + 34, cardY + 222, cardWidth - 68, 32, 3);
+    drawingContext.font = "20px Georgia, serif";
+    wrapText(drawingContext, card.message, x + 34, cardY + 212, cardWidth - 68, 28, 3);
   });
 
-  drawReportPanel(drawingContext, 72, 1044, 626, 260, "Actionable Insight", colors);
+  drawReportPanel(drawingContext, 72, 1138, 626, 234, "Actionable Insight", colors);
   drawingContext.fillStyle = colors.cream;
-  drawingContext.font = "25px Georgia, serif";
-  wrapText(drawingContext, reading.weekMessage, 112, 1128, 546, 34, 4);
+  drawingContext.font = "24px Georgia, serif";
+  wrapText(drawingContext, reading.weekMessage, 112, 1220, 546, 32, 3);
   drawingContext.fillStyle = colors.gold;
-  drawingContext.font = "700 22px Arial, sans-serif";
-  drawingContext.fillText("Try this today", 112, 1244);
+  drawingContext.font = "700 20px Arial, sans-serif";
+  drawingContext.fillText("Try this today", 112, 1320);
 
-  drawReportPanel(drawingContext, 742, 1044, 626, 260, "Deeper Reflection", colors);
+  drawReportPanel(drawingContext, 742, 1138, 626, 234, "Deeper Reflection", colors);
   drawingContext.fillStyle = colors.muted;
-  drawingContext.font = "23px Georgia, serif";
-  wrapText(drawingContext, `${reading.archetype.text} ${reading.cards[0].message} ${reading.cards[1].message}`, 782, 1128, 546, 32, 5);
+  drawingContext.font = "22px Georgia, serif";
+  wrapText(drawingContext, `${reading.archetype.text} ${reading.cards[0].message} ${reading.cards[1].message}`, 782, 1220, 546, 30, 5);
 
-  drawReportPanel(drawingContext, 72, 1340, 1296, 240, "Daily Ritual", colors);
+  drawReportPanel(drawingContext, 72, 1410, 1296, 218, "Daily Ritual", colors);
   drawBulletList(drawingContext, [
     reading.ritual,
     "Save this report, then return to the question when your body feels calmer.",
     "Use this as reflection, not certainty.",
-  ], 118, 1422, 1188, colors, 2);
+  ], 118, 1490, 1188, colors, 2);
 
-  drawReportPanel(drawingContext, 72, 1618, 1296, 176, "Gentle Boundary", colors);
+  drawReportPanel(drawingContext, 72, 1660, 1296, 142, "Gentle Boundary", colors);
   drawingContext.fillStyle = colors.muted;
-  drawingContext.font = "23px Georgia, serif";
+  drawingContext.font = "21px Georgia, serif";
   wrapText(
     drawingContext,
     "Moonveil Oracle is for entertainment, journaling, and self-reflection. It does not promise love, money, healing, legal outcomes, investment returns, safety decisions, pregnancy, or contact from a specific person.",
     118,
-    1698,
+    1736,
     1188,
-    32,
-    3
+    29,
+    2
   );
 
   drawingContext.textAlign = "center";
