@@ -189,16 +189,16 @@ button {
 }
 
 .hero::before {
-  background: url("assets/moonveil-hero.png") center / cover no-repeat;
+  background: url("assets/moonveil-hero.png") 34% center / cover no-repeat;
   filter: saturate(1.04) contrast(1.04);
   z-index: -3;
 }
 
 .hero::after {
   background:
-    radial-gradient(circle at 12% 18%, rgba(201, 155, 60, 0.16), transparent 18rem),
-    linear-gradient(90deg, rgba(5, 13, 24, 0.94) 0%, rgba(5, 13, 24, 0.82) 38%, rgba(5, 13, 24, 0.36) 72%, rgba(5, 13, 24, 0.18) 100%),
-    linear-gradient(180deg, rgba(5, 13, 24, 0.3), rgba(5, 13, 24, 0.42));
+    radial-gradient(circle at 14% 20%, rgba(201, 155, 60, 0.2), transparent 20rem),
+    linear-gradient(90deg, rgba(5, 13, 24, 0.62) 0%, rgba(5, 13, 24, 0.48) 38%, rgba(5, 13, 24, 0.66) 68%, rgba(5, 13, 24, 0.82) 100%),
+    linear-gradient(180deg, rgba(5, 13, 24, 0.16), rgba(5, 13, 24, 0.3));
   z-index: -2;
 }
 
@@ -476,6 +476,19 @@ h3 {
   display: flex;
   gap: 12px;
   justify-content: space-between;
+}
+
+.oracle-panel .form-heading {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.oracle-panel .form-heading .ghost-button {
+  line-height: 1.2;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 10px 14px;
+  white-space: normal;
 }
 
 label {
@@ -1194,13 +1207,13 @@ textarea:focus {
   }
 
   .hero::before {
-    background-position: 62% center;
+    background-position: 28% center;
   }
 
   .hero::after {
     background:
-      linear-gradient(180deg, rgba(5, 13, 24, 0.9) 0%, rgba(5, 13, 24, 0.68) 44%, rgba(5, 13, 24, 0.5) 100%),
-      linear-gradient(90deg, rgba(5, 13, 24, 0.92), rgba(5, 13, 24, 0.36));
+      linear-gradient(180deg, rgba(5, 13, 24, 0.74) 0%, rgba(5, 13, 24, 0.62) 44%, rgba(5, 13, 24, 0.68) 100%),
+      linear-gradient(90deg, rgba(5, 13, 24, 0.58), rgba(5, 13, 24, 0.5));
   }
 
   .hero-copy,
