@@ -808,6 +808,11 @@ textarea:focus {
   max-width: 1220px;
 }
 
+.action-row .primary-button,
+.action-row .ghost-button {
+  min-width: 164px;
+}
+
 .deeper-reflection {
   background: rgba(255, 250, 240, 0.08);
   border: 1px solid rgba(255, 250, 240, 0.16);

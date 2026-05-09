@@ -162,6 +162,8 @@ const form = document.querySelector("#oracleForm");
 const sampleButton = document.querySelector("#sampleButton");
 const copyReadingButton = document.querySelector("#copyReadingButton");
 const saveReadingButton = document.querySelector("#saveReadingButton");
+const downloadImageButton = document.querySelector("#downloadImageButton");
+const downloadPdfButton = document.querySelector("#downloadPdfButton");
 const readingLoader = document.querySelector("#readingLoader");
 const loaderTitle = document.querySelector("#loaderTitle");
 const loaderText = document.querySelector("#loaderText");
@@ -169,6 +171,7 @@ const canvas = document.querySelector("#cosmicCanvas");
 const context = canvas ? canvas.getContext("2d") : null;
 
 let latestReadingText = "";
+let latestReading = null;
 let stars = [];
 let pointerX = 0.5;
 let pointerY = 0.5;
@@ -382,6 +385,7 @@ function renderLuckySigns(reading) {
 }
 
 function renderReading(reading) {
+  latestReading = reading;
   setText("#readingTitle", `${reading.name}'s ${reading.focus.toLowerCase()} reading`);
   setText("#readingSubtitle", `Your question: ${reading.question}`);
   setText("#zodiacSignal", `Timing: ${reading.zodiac}`);
@@ -447,6 +451,410 @@ async function copyText(text) {
   } else {
     fallbackCopy(text);
   }
+}
+
+function getActiveReading() {
+  if (!latestReading && form) {
+    latestReading = buildReading(collectFormData());
+  }
+  return latestReading;
+}
+
+function slugify(value) {
+  const slug = String(value || "reading")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return slug || "reading";
+}
+
+function roundRectPath(drawingContext, x, y, width, height, radius) {
+  const safeRadius = Math.min(radius, width / 2, height / 2);
+  drawingContext.beginPath();
+  drawingContext.moveTo(x + safeRadius, y);
+  drawingContext.lineTo(x + width - safeRadius, y);
+  drawingContext.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
+  drawingContext.lineTo(x + width, y + height - safeRadius);
+  drawingContext.quadraticCurveTo(x + width, y + height, x + width - safeRadius, y + height);
+  drawingContext.lineTo(x + safeRadius, y + height);
+  drawingContext.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
+  drawingContext.lineTo(x, y + safeRadius);
+  drawingContext.quadraticCurveTo(x, y, x + safeRadius, y);
+  drawingContext.closePath();
+}
+
+function fillRoundedRect(drawingContext, x, y, width, height, radius, fillStyle) {
+  roundRectPath(drawingContext, x, y, width, height, radius);
+  drawingContext.fillStyle = fillStyle;
+  drawingContext.fill();
+}
+
+function strokeRoundedRect(drawingContext, x, y, width, height, radius, strokeStyle, lineWidth = 3) {
+  roundRectPath(drawingContext, x, y, width, height, radius);
+  drawingContext.strokeStyle = strokeStyle;
+  drawingContext.lineWidth = lineWidth;
+  drawingContext.stroke();
+}
+
+function drawLine(drawingContext, x1, y1, x2, y2, color, lineWidth = 2) {
+  drawingContext.beginPath();
+  drawingContext.strokeStyle = color;
+  drawingContext.lineWidth = lineWidth;
+  drawingContext.moveTo(x1, y1);
+  drawingContext.lineTo(x2, y2);
+  drawingContext.stroke();
+}
+
+function wrapText(drawingContext, text, x, y, maxWidth, lineHeight, maxLines = 8) {
+  const words = String(text || "").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  const lines = [];
+  let line = "";
+
+  words.forEach((word) => {
+    const testLine = line ? `${line} ${word}` : word;
+    if (drawingContext.measureText(testLine).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = testLine;
+    }
+  });
+
+  if (line) lines.push(line);
+
+  if (lines.length > maxLines) {
+    lines.length = maxLines;
+    let finalLine = `${lines[maxLines - 1]}...`;
+    while (drawingContext.measureText(finalLine).width > maxWidth && finalLine.length > 4) {
+      finalLine = `${finalLine.slice(0, -4).trim()}...`;
+    }
+    lines[maxLines - 1] = finalLine;
+  }
+
+  lines.forEach((currentLine, index) => {
+    drawingContext.fillText(currentLine, x, y + index * lineHeight);
+  });
+
+  return y + Math.max(lines.length, 1) * lineHeight;
+}
+
+function drawReportBackground(drawingContext, width, height, random) {
+  const background = drawingContext.createLinearGradient(0, 0, width, height);
+  background.addColorStop(0, "#03111f");
+  background.addColorStop(0.45, "#071d31");
+  background.addColorStop(1, "#020914");
+  drawingContext.fillStyle = background;
+  drawingContext.fillRect(0, 0, width, height);
+
+  const glow = drawingContext.createRadialGradient(width * 0.15, height * 0.2, 20, width * 0.15, height * 0.2, 620);
+  glow.addColorStop(0, "rgba(204, 164, 92, 0.18)");
+  glow.addColorStop(1, "rgba(204, 164, 92, 0)");
+  drawingContext.fillStyle = glow;
+  drawingContext.fillRect(0, 0, width, height);
+
+  for (let index = 0; index < 260; index += 1) {
+    const x = 40 + random() * (width - 80);
+    const y = 40 + random() * (height - 100);
+    const size = 0.9 + random() * 2.4;
+    drawingContext.globalAlpha = 0.35 + random() * 0.55;
+    drawingContext.fillStyle = index % 9 === 0 ? "#f4d48a" : "#f8f1da";
+    drawingContext.fillRect(x, y, size, size);
+  }
+  drawingContext.globalAlpha = 1;
+}
+
+function drawReportBorder(drawingContext, width, height, colors) {
+  strokeRoundedRect(drawingContext, 28, 28, width - 56, height - 56, 24, colors.gold, 4);
+  strokeRoundedRect(drawingContext, 44, 44, width - 88, height - 88, 16, "rgba(238, 201, 132, 0.54)", 1.5);
+  strokeRoundedRect(drawingContext, 62, 62, width - 124, height - 124, 10, "rgba(238, 201, 132, 0.22)", 1);
+
+  const corner = 110;
+  [
+    [44, 44, 1, 1],
+    [width - 44, 44, -1, 1],
+    [44, height - 44, 1, -1],
+    [width - 44, height - 44, -1, -1],
+  ].forEach(([x, y, sx, sy]) => {
+    drawingContext.strokeStyle = colors.gold;
+    drawingContext.lineWidth = 2;
+    drawingContext.beginPath();
+    drawingContext.moveTo(x, y + sy * 16);
+    drawingContext.quadraticCurveTo(x + sx * 42, y + sy * 22, x + sx * 48, y + sy * 64);
+    drawingContext.quadraticCurveTo(x + sx * 54, y + sy * 100, x + sx * corner, y + sy * corner);
+    drawingContext.stroke();
+  });
+}
+
+function drawReportPanel(drawingContext, x, y, width, height, title, colors) {
+  fillRoundedRect(drawingContext, x, y, width, height, 18, "rgba(4, 21, 36, 0.82)");
+  strokeRoundedRect(drawingContext, x, y, width, height, 18, "rgba(238, 201, 132, 0.78)", 2);
+  strokeRoundedRect(drawingContext, x + 8, y + 8, width - 16, height - 16, 13, "rgba(238, 201, 132, 0.25)", 1);
+
+  drawingContext.fillStyle = colors.gold;
+  drawingContext.font = "700 26px Georgia, serif";
+  drawingContext.textAlign = "center";
+  drawingContext.fillText(title, x + width / 2, y + 42);
+  drawLine(drawingContext, x + 34, y + 58, x + width - 34, y + 58, "rgba(238, 201, 132, 0.42)", 1);
+  drawingContext.textAlign = "left";
+}
+
+function drawMoon(drawingContext, x, y, radius, colors) {
+  drawingContext.fillStyle = colors.gold;
+  drawingContext.beginPath();
+  drawingContext.arc(x, y, radius, 0, Math.PI * 2);
+  drawingContext.fill();
+  drawingContext.fillStyle = "#03111f";
+  drawingContext.beginPath();
+  drawingContext.arc(x + radius * 0.38, y - radius * 0.04, radius * 0.92, 0, Math.PI * 2);
+  drawingContext.fill();
+}
+
+function drawZodiacWheel(drawingContext, x, y, radius, colors) {
+  drawingContext.strokeStyle = colors.gold;
+  drawingContext.lineWidth = 3;
+  drawingContext.beginPath();
+  drawingContext.arc(x, y, radius, 0, Math.PI * 2);
+  drawingContext.stroke();
+  drawingContext.beginPath();
+  drawingContext.arc(x, y, radius * 0.72, 0, Math.PI * 2);
+  drawingContext.stroke();
+  drawingContext.beginPath();
+  drawingContext.arc(x, y, radius * 0.28, 0, Math.PI * 2);
+  drawingContext.stroke();
+
+  for (let index = 0; index < 12; index += 1) {
+    const angle = (Math.PI * 2 * index) / 12 - Math.PI / 2;
+    const outerX = x + Math.cos(angle) * radius;
+    const outerY = y + Math.sin(angle) * radius;
+    const innerX = x + Math.cos(angle) * radius * 0.28;
+    const innerY = y + Math.sin(angle) * radius * 0.28;
+    drawLine(drawingContext, innerX, innerY, outerX, outerY, "rgba(238, 201, 132, 0.45)", 1);
+  }
+
+  drawingContext.fillStyle = colors.gold;
+  drawingContext.font = "700 40px Georgia, serif";
+  drawingContext.textAlign = "center";
+  drawingContext.fillText("*", x, y + 15);
+  drawingContext.textAlign = "left";
+}
+
+function drawMiniCards(drawingContext, cards, x, y, width, height, colors) {
+  const gap = 18;
+  const cardWidth = (width - gap * 2) / 3;
+  cards.forEach((card, index) => {
+    const cardX = x + index * (cardWidth + gap);
+    fillRoundedRect(drawingContext, cardX, y, cardWidth, height, 14, "rgba(255, 250, 240, 0.05)");
+    strokeRoundedRect(drawingContext, cardX, y, cardWidth, height, 14, "rgba(238, 201, 132, 0.74)", 2);
+    drawingContext.fillStyle = colors.gold;
+    drawingContext.font = "700 22px Georgia, serif";
+    drawingContext.textAlign = "center";
+    drawingContext.fillText(String(index + 1), cardX + cardWidth / 2, y + 40);
+    drawingContext.fillStyle = colors.cream;
+    drawingContext.font = "700 24px Georgia, serif";
+    wrapText(drawingContext, card.name, cardX + 18, y + 88, cardWidth - 36, 28, 2);
+    drawingContext.fillStyle = colors.muted;
+    drawingContext.font = "18px Arial, sans-serif";
+    wrapText(drawingContext, card.element, cardX + 18, y + height - 32, cardWidth - 36, 22, 1);
+    drawingContext.textAlign = "left";
+  });
+}
+
+function drawField(drawingContext, label, value, x, y, maxWidth, colors, maxLines = 2) {
+  drawingContext.fillStyle = colors.gold;
+  drawingContext.font = "700 20px Arial, sans-serif";
+  drawingContext.fillText(label.toUpperCase(), x, y);
+  drawingContext.fillStyle = colors.cream;
+  drawingContext.font = "22px Georgia, serif";
+  return wrapText(drawingContext, value, x, y + 32, maxWidth, 28, maxLines) + 8;
+}
+
+function drawBulletList(drawingContext, items, x, y, maxWidth, colors, maxLines = 2) {
+  let cursorY = y;
+  drawingContext.font = "22px Georgia, serif";
+  items.forEach((item) => {
+    drawingContext.fillStyle = colors.gold;
+    drawingContext.fillText("-", x, cursorY);
+    drawingContext.fillStyle = colors.cream;
+    cursorY = wrapText(drawingContext, item, x + 28, cursorY, maxWidth - 28, 30, maxLines) + 10;
+  });
+  return cursorY;
+}
+
+function makeReadingReportCanvas(reading) {
+  const width = 1440;
+  const height = 1920;
+  const reportCanvas = document.createElement("canvas");
+  const drawingContext = reportCanvas.getContext("2d");
+  const colors = {
+    gold: "#e8c47c",
+    cream: "#fff4df",
+    muted: "rgba(255, 244, 223, 0.76)",
+    rose: "#c99aa4",
+  };
+  const random = seededRandom(hashString(latestReadingText || `${reading.name}|${reading.question}`));
+
+  reportCanvas.width = width;
+  reportCanvas.height = height;
+
+  drawReportBackground(drawingContext, width, height, random);
+  drawReportBorder(drawingContext, width, height, colors);
+
+  drawMoon(drawingContext, 142, 130, 54, colors);
+  drawingContext.fillStyle = colors.gold;
+  drawingContext.font = "700 54px Georgia, serif";
+  drawingContext.textAlign = "center";
+  drawingContext.fillText("MOONVEIL ORACLE", width / 2, 112);
+  drawingContext.font = "700 28px Arial, sans-serif";
+  drawingContext.fillText("AI TAROT & ASTROLOGY READING", width / 2, 158);
+  drawingContext.fillStyle = colors.muted;
+  drawingContext.font = "24px Georgia, serif";
+  drawingContext.fillText("A reflective report for love, clarity, and self-reflection", width / 2, 198);
+  drawingContext.textAlign = "left";
+  fillRoundedRect(drawingContext, width - 182, 74, 104, 64, 18, "rgba(4, 21, 36, 0.9)");
+  strokeRoundedRect(drawingContext, width - 182, 74, 104, 64, 18, colors.gold, 2);
+  drawingContext.fillStyle = colors.gold;
+  drawingContext.font = "700 27px Georgia, serif";
+  drawingContext.textAlign = "center";
+  drawingContext.fillText("1/1", width - 130, 116);
+  drawingContext.textAlign = "left";
+
+  drawReportPanel(drawingContext, 72, 244, 390, 340, "Reading Details", colors);
+  let cursorY = 326;
+  cursorY = drawField(drawingContext, "Name", reading.name, 106, cursorY, 320, colors, 1);
+  cursorY = drawField(drawingContext, "Focus", reading.focus, 106, cursorY, 320, colors, 1);
+  cursorY = drawField(drawingContext, "Mood", reading.mood, 106, cursorY, 320, colors, 1);
+  cursorY = drawField(drawingContext, "Timing", reading.zodiac, 106, cursorY, 320, colors, 1);
+  cursorY = drawField(drawingContext, "Question", reading.question, 106, cursorY, 320, colors, 3);
+
+  drawReportPanel(drawingContext, 492, 244, 456, 340, "Oracle Map", colors);
+  drawZodiacWheel(drawingContext, 720, 388, 120, colors);
+  drawMiniCards(drawingContext, reading.cards, 540, 512, 360, 92, colors);
+
+  drawReportPanel(drawingContext, 978, 244, 390, 340, "Essence", colors);
+  drawingContext.fillStyle = colors.cream;
+  drawingContext.font = "700 34px Georgia, serif";
+  wrapText(drawingContext, reading.archetype.name, 1016, 330, 318, 38, 2);
+  drawingContext.fillStyle = colors.muted;
+  drawingContext.font = "23px Georgia, serif";
+  wrapText(drawingContext, reading.mainMessage, 1016, 424, 318, 32, 5);
+  drawingContext.fillStyle = colors.gold;
+  drawingContext.font = "700 21px Arial, sans-serif";
+  drawingContext.fillText(`Lucky: ${reading.color} / ${reading.number} / ${reading.timing}`, 1016, 538);
+
+  const cardY = 622;
+  const cardGap = 22;
+  const cardWidth = (width - 144 - cardGap * 2) / 3;
+  reading.cards.forEach((card, index) => {
+    const x = 72 + index * (cardWidth + cardGap);
+    drawReportPanel(drawingContext, x, cardY, cardWidth, 332, `Card ${index + 1}`, colors);
+    drawingContext.fillStyle = colors.gold;
+    drawingContext.font = "700 23px Arial, sans-serif";
+    drawingContext.fillText(card.element.toUpperCase(), x + 34, cardY + 100);
+    drawingContext.fillStyle = colors.cream;
+    drawingContext.font = "700 34px Georgia, serif";
+    wrapText(drawingContext, card.name, x + 34, cardY + 146, cardWidth - 68, 39, 2);
+    drawingContext.fillStyle = colors.muted;
+    drawingContext.font = "23px Georgia, serif";
+    wrapText(drawingContext, card.message, x + 34, cardY + 230, cardWidth - 68, 32, 3);
+  });
+
+  drawReportPanel(drawingContext, 72, 994, 626, 292, "Actionable Insight", colors);
+  drawingContext.fillStyle = colors.cream;
+  drawingContext.font = "27px Georgia, serif";
+  wrapText(drawingContext, reading.weekMessage, 112, 1080, 546, 38, 4);
+  drawingContext.fillStyle = colors.gold;
+  drawingContext.font = "700 22px Arial, sans-serif";
+  drawingContext.fillText("Try this today", 112, 1230);
+
+  drawReportPanel(drawingContext, 742, 994, 626, 292, "Deeper Reflection", colors);
+  drawingContext.fillStyle = colors.muted;
+  drawingContext.font = "24px Georgia, serif";
+  wrapText(drawingContext, `${reading.archetype.text} ${reading.cards[0].message} ${reading.cards[1].message}`, 782, 1080, 546, 34, 5);
+
+  drawReportPanel(drawingContext, 72, 1326, 1296, 260, "Daily Ritual", colors);
+  drawBulletList(drawingContext, [
+    reading.ritual,
+    "Save this report, then return to the question when your body feels calmer.",
+    "Use this as reflection, not certainty.",
+  ], 118, 1410, 1188, colors, 2);
+
+  drawReportPanel(drawingContext, 72, 1624, 1296, 176, "Gentle Boundary", colors);
+  drawingContext.fillStyle = colors.muted;
+  drawingContext.font = "23px Georgia, serif";
+  wrapText(
+    drawingContext,
+    "Moonveil Oracle is for entertainment, journaling, and self-reflection. It does not promise love, money, healing, legal outcomes, investment returns, safety decisions, pregnancy, or contact from a specific person.",
+    118,
+    1708,
+    1188,
+    32,
+    3
+  );
+
+  drawingContext.textAlign = "center";
+  drawingContext.fillStyle = colors.gold;
+  drawingContext.font = "700 24px Georgia, serif";
+  drawingContext.fillText("Generated by Moonveil Oracle", width / 2, 1856);
+  drawingContext.fillStyle = "rgba(255, 244, 223, 0.62)";
+  drawingContext.font = "18px Arial, sans-serif";
+  drawingContext.fillText("https://kjs-digital.github.io/moonveil-oracle.github.io/", width / 2, 1888);
+  drawingContext.textAlign = "left";
+
+  return reportCanvas;
+}
+
+function downloadReadingImage() {
+  const reading = getActiveReading();
+  if (!reading) return;
+  const reportCanvas = makeReadingReportCanvas(reading);
+  const link = document.createElement("a");
+  link.href = reportCanvas.toDataURL("image/png");
+  link.download = `moonveil-oracle-${slugify(reading.name)}.png`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  showToast("Reading image downloaded");
+}
+
+function saveReadingAsPdf() {
+  const reading = getActiveReading();
+  if (!reading) return;
+  const reportCanvas = makeReadingReportCanvas(reading);
+  const imageUrl = reportCanvas.toDataURL("image/png");
+  const printWindow = window.open("", "_blank");
+
+  if (!printWindow) {
+    showToast("Allow pop-ups to save PDF");
+    return;
+  }
+
+  printWindow.document.write(`
+    <!doctype html>
+    <html>
+      <head>
+        <title>Moonveil Oracle - ${slugify(reading.name)}</title>
+        <style>
+          @page { margin: 0; size: auto; }
+          html, body { margin: 0; min-height: 100%; background: #03111f; }
+          body { display: grid; place-items: center; }
+          img { display: block; max-width: 100%; width: 100%; height: auto; }
+          @media print { img { width: 100%; } }
+        </style>
+      </head>
+      <body>
+        <img src="${imageUrl}" alt="Moonveil Oracle reading report" />
+        <script>
+          const image = document.querySelector("img");
+          image.addEventListener("load", () => {
+            window.focus();
+            window.print();
+          });
+        <\/script>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+  showToast("PDF print view opened");
 }
 
 function resizeCanvas() {
@@ -551,6 +959,14 @@ if (copyReadingButton) {
       showToast("Copy failed");
     }
   });
+}
+
+if (downloadImageButton) {
+  downloadImageButton.addEventListener("click", downloadReadingImage);
+}
+
+if (downloadPdfButton) {
+  downloadPdfButton.addEventListener("click", saveReadingAsPdf);
 }
 
 if (saveReadingButton) {
