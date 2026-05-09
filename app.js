@@ -1,6 +1,6 @@
 const sampleReading = {
   name: "Maya",
-  birthDate: "1994-02-18",
+  birthDate: "",
   focus: "Love",
   mood: "Hopeful",
   zodiac: "",
@@ -116,17 +116,12 @@ const focusMessages = {
     "A professional door opens when you make your value easier to understand.",
     "Your effort is ready to become more visible, but the message needs cleaner packaging.",
   ],
-  Money: [
-    "A small leak matters more than a dramatic windfall right now.",
-    "The strongest money move is boring, repeatable, and emotionally calm.",
-    "Spend from identity, not from urgency.",
-  ],
-  "Life path": [
+  "Personal Growth": [
     "You are being invited to stop treating clarity as a lightning strike and start treating it as a practice.",
     "A future version of you is asking for fewer distractions and more devotion.",
     "The path gets easier when you let one older version of yourself retire.",
   ],
-  "General energy": [
+  "Daily Clarity": [
     "The week favors simple choices, honest words, and fewer open loops.",
     "Your energy returns when you stop negotiating with what already feels finished.",
     "A calm decision will create more movement than another round of overthinking.",
@@ -167,6 +162,9 @@ const form = document.querySelector("#oracleForm");
 const sampleButton = document.querySelector("#sampleButton");
 const copyReadingButton = document.querySelector("#copyReadingButton");
 const saveReadingButton = document.querySelector("#saveReadingButton");
+const readingLoader = document.querySelector("#readingLoader");
+const loaderTitle = document.querySelector("#loaderTitle");
+const loaderText = document.querySelector("#loaderText");
 const canvas = document.querySelector("#cosmicCanvas");
 const context = canvas ? canvas.getContext("2d") : null;
 
@@ -174,12 +172,71 @@ let latestReadingText = "";
 let stars = [];
 let pointerX = 0.5;
 let pointerY = 0.5;
+let revealTimer = 0;
+
+const loaderStages = [
+  {
+    title: "Shuffling your cards",
+    text: "The oracle is drawing a pattern from your question.",
+  },
+  {
+    title: "Tracing your sky",
+    text: "Zodiac timing and numerology are being woven into the spread.",
+  },
+  {
+    title: "Opening the veil",
+    text: "Your cards are turning over now.",
+  },
+];
 
 function showToast(message) {
   if (!toast) return;
   toast.textContent = message;
   toast.classList.add("is-visible");
   window.setTimeout(() => toast.classList.remove("is-visible"), 1800);
+}
+
+function setLoadingStage(stageIndex) {
+  const stage = loaderStages[stageIndex] || loaderStages[0];
+  if (loaderTitle) loaderTitle.textContent = stage.title;
+  if (loaderText) loaderText.textContent = stage.text;
+  document.querySelectorAll("[data-loader-step]").forEach((step) => {
+    step.classList.toggle("is-active", Number(step.dataset.loaderStep) <= stageIndex);
+  });
+}
+
+function revealCards() {
+  const results = document.querySelector("#results");
+  if (!results) return;
+  results.classList.remove("is-revealing");
+  window.requestAnimationFrame(() => {
+    results.classList.add("is-revealing");
+  });
+}
+
+function openReadingWithCeremony(reading) {
+  window.clearTimeout(revealTimer);
+  setLoadingStage(0);
+  if (readingLoader) {
+    readingLoader.classList.add("is-visible");
+    readingLoader.setAttribute("aria-hidden", "false");
+  }
+  if (form) form.classList.add("is-busy");
+
+  window.setTimeout(() => setLoadingStage(1), 850);
+  window.setTimeout(() => setLoadingStage(2), 1700);
+
+  revealTimer = window.setTimeout(() => {
+    renderReading(reading);
+    window.location.hash = "results";
+    revealCards();
+    if (readingLoader) {
+      readingLoader.classList.remove("is-visible");
+      readingLoader.setAttribute("aria-hidden", "true");
+    }
+    if (form) form.classList.remove("is-busy");
+    showToast("Reading revealed");
+  }, 2600);
 }
 
 function hashString(input) {
@@ -249,8 +306,8 @@ function collectFormData() {
   const data = new FormData(form);
   return {
     name: String(data.get("name") || "Seeker").trim() || "Seeker",
-    birthDate: String(data.get("birthDate") || "1996-10-24"),
-    focus: String(data.get("focus") || "General energy"),
+    birthDate: String(data.get("birthDate") || ""),
+    focus: String(data.get("focus") || "Daily Clarity"),
     mood: String(data.get("mood") || "Hopeful"),
     zodiac: String(data.get("zodiac") || ""),
     question: String(data.get("question") || "").trim(),
@@ -262,12 +319,12 @@ function buildReading(input) {
   const seed = hashString(`${input.name}|${input.birthDate}|${input.focus}|${input.mood}|${input.question}|${todayKey}`);
   const random = seededRandom(seed);
   const cards = drawUnique(deck, 3, random);
-  const zodiac = input.zodiac || zodiacFromDate(input.birthDate);
-  const lifePath = digitSum(input.birthDate);
+  const zodiac = input.zodiac || (input.birthDate ? zodiacFromDate(input.birthDate) : "Intuitive");
+  const lifePath = input.birthDate ? digitSum(input.birthDate) : digitSum(seed);
   const resonance = 72 + Math.floor(random() * 23);
   const archetype = pick(archetypes, random);
-  const mainMessage = pick(focusMessages[input.focus] || focusMessages["General energy"], random);
-  const weekMessage = `${cards[2].action} This becomes easier when you treat the next seven days as a test of alignment, not a final verdict.`;
+  const mainMessage = pick(focusMessages[input.focus] || focusMessages["Daily Clarity"], random);
+  const weekMessage = `${cards[2].action} Keep the next step small enough to do today.`;
   const ritual = pick(rituals, random);
   const color = pick(luckyColors, random);
   const number = digitSum(seed);
@@ -304,7 +361,7 @@ function setText(selector, text) {
 function renderCards(cards) {
   const spread = document.querySelector("#cardSpread");
   if (!spread) return;
-  const labels = ["Past", "Present", "Next step"];
+  const labels = ["Card 1", "Card 2", "Card 3"];
   spread.innerHTML = cards.map((card, index) => `
     <article class="oracle-card">
       <span>${labels[index]} - ${card.element}</span>
@@ -325,13 +382,13 @@ function renderLuckySigns(reading) {
 }
 
 function renderReading(reading) {
-  setText("#readingTitle", `${reading.name}'s ${reading.focus.toLowerCase()} spread`);
-  setText("#readingSubtitle", `Mood: ${reading.mood}. Question: ${reading.question}`);
-  setText("#zodiacSignal", `Zodiac: ${reading.zodiac}`);
-  setText("#lifePathSignal", `Life path: ${reading.lifePath}`);
+  setText("#readingTitle", `${reading.name}'s ${reading.focus.toLowerCase()} reading`);
+  setText("#readingSubtitle", `Your question: ${reading.question}`);
+  setText("#zodiacSignal", `Timing: ${reading.zodiac}`);
+  setText("#lifePathSignal", `Number: ${reading.lifePath}`);
   setText("#resonanceSignal", `Resonance: ${reading.resonance}`);
   setText("#archetypeName", reading.archetype.name);
-  setText("#archetypeText", reading.archetype.text);
+  setText("#archetypeText", `${reading.archetype.text} ${reading.cards[0].message} ${reading.cards[1].message}`);
   setText("#moonPhase", reading.moonPhase);
   setText("#mainMessage", reading.mainMessage);
   setText("#weekMessage", reading.weekMessage);
@@ -347,15 +404,15 @@ function renderReading(reading) {
     `Moonveil Oracle reading for ${reading.name}`,
     `Focus: ${reading.focus}`,
     `Question: ${reading.question}`,
-    `Zodiac: ${reading.zodiac}`,
-    `Life path: ${reading.lifePath}`,
+    `Timing: ${reading.zodiac}`,
+    `Number: ${reading.lifePath}`,
     `Resonance: ${reading.resonance}`,
     `Archetype: ${reading.archetype.name} - ${reading.archetype.text}`,
-    `Past: ${reading.cards[0].name} - ${reading.cards[0].message}`,
-    `Present: ${reading.cards[1].name} - ${reading.cards[1].message}`,
-    `Next step: ${reading.cards[2].name} - ${reading.cards[2].message}`,
-    `Main message: ${reading.mainMessage}`,
-    `Next 7 days: ${reading.weekMessage}`,
+    `Card 1: ${reading.cards[0].name} - ${reading.cards[0].message}`,
+    `Card 2: ${reading.cards[1].name} - ${reading.cards[1].message}`,
+    `Card 3: ${reading.cards[2].name} - ${reading.cards[2].message}`,
+    `Short interpretation: ${reading.mainMessage}`,
+    `Actionable insight: ${reading.weekMessage}`,
     `Lucky signs: ${reading.color}, ${reading.number}, ${reading.timing}`,
     `Mini ritual: ${reading.ritual}`,
     "Entertainment and reflection only. No guaranteed outcomes.",
@@ -470,9 +527,7 @@ if (form) {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     const reading = buildReading(collectFormData());
-    renderReading(reading);
-    window.location.hash = "results";
-    showToast("Reading revealed");
+    openReadingWithCeremony(reading);
   });
 }
 

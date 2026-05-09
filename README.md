@@ -5,11 +5,15 @@ Static GitHub Pages MVP for an overseas English-language fortune-telling site.
 ## What This Site Does
 
 - Free tarot-style oracle reading
-- Zodiac sign and life path number
+- Optional zodiac sign and birth date
 - Three-card spread
+- Example readings for Love, Career, and Personal Growth
 - Lucky signs and mini ritual
-- Memorable free ritual section
+- Short first result with deeper reflection below
+- Three-step ritual section
+- Loading ceremony before the reading is revealed
 - Save and copy buttons for the reading
+- AI-generated hero background image at `assets/moonveil-hero.png`
 
 This version is intentionally static so it can launch with no domain and no server.
 
@@ -32,6 +36,7 @@ GitHub Pages hosts static HTML, CSS, and JavaScript files directly from a reposi
    - `index.html`
    - `styles.css`
    - `app.js`
+   - `assets/moonveil-hero.png`
    - `privacy.html`
    - `terms.html`
 3. Go to repository `Settings` -> `Pages`.
@@ -43,6 +48,10 @@ https://yourname.github.io/repository-name/
 ```
 
 Official docs: https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages
+
+## AI Image Prompts
+
+See `image-prompts.md` for ready-to-use prompts for the hero background, a more surreal oracle altar, and a subtle paper texture.
 
 ## Add AI Later
 
