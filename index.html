@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Moonveil Oracle | Free Online Tarot, Astrology & Numerology Reading</title>
+    <meta
+      name="description"
+      content="Get a free online oracle reading with tarot-style cards, zodiac timing, numerology patterns, lucky signs, and a reflective daily ritual."
+    />
+    <meta property="og:title" content="Moonveil Oracle" />
+    <meta
+      property="og:description"
+      content="A free online oracle reading for love, career, money, and life clarity. Entertainment and reflection only."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <canvas id="cosmicCanvas" aria-hidden="true"></canvas>
+
+    <div class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="#reading">
+          <span class="brand-mark">MO</span>
+          <span>
+            <strong>Moonveil Oracle</strong>
+            <small>Online oracle readings</small>
+          </span>
+        </a>
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="#reading">Reading</a>
+          <a href="#results">Results</a>
+          <a href="#rituals">Ritual</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+        <a class="topbar-cta" href="#reading">Start reading</a>
+      </header>
+
+      <main>
+        <section class="hero" id="reading">
+          <div class="hero-copy">
+            <p class="eyebrow">Free online oracle reading</p>
+            <h1 class="hero-title"><span>Moonveil</span><span>Oracle</span></h1>
+            <p class="lead">
+              A cinematic tarot, astrology, and numerology ritual for people who want a
+              beautiful moment of reflection before their next move.
+            </p>
+            <div class="trust-strip" aria-label="Reading boundaries">
+              <span>Entertainment only</span>
+              <span>No medical, legal, or financial advice</span>
+              <span>No guaranteed outcomes</span>
+            </div>
+            <div class="oracle-visual" aria-hidden="true">
+              <div class="sigil-ring">
+                <span class="sigil-dot dot-one"></span>
+                <span class="sigil-dot dot-two"></span>
+                <span class="sigil-dot dot-three"></span>
+                <span class="sigil-moon"></span>
+              </div>
+              <div class="floating-card card-left">
+                <span>PAST</span>
+                <strong>The Tide</strong>
+              </div>
+              <div class="floating-card card-right">
+                <span>NEXT</span>
+                <strong>The Key</strong>
+              </div>
+            </div>
+          </div>
+
+          <form class="oracle-panel" id="oracleForm">
+            <div class="form-heading">
+              <div>
+                <span class="section-label">Personal reading</span>
+                <h2>Open your spread</h2>
+              </div>
+              <button class="ghost-button" type="button" id="sampleButton">Sample</button>
+            </div>
+
+            <div class="two-column">
+              <label>
+                Name or nickname
+                <input name="name" type="text" maxlength="60" value="Luna" required />
+              </label>
+              <label>
+                Birth date
+                <input name="birthDate" type="date" value="1996-10-24" required />
+              </label>
+            </div>
+
+            <div class="two-column">
+              <label>
+                Reading focus
+                <select name="focus">
+                  <option>Love</option>
+                  <option>Career</option>
+                  <option>Money</option>
+                  <option>Life path</option>
+                  <option>General energy</option>
+                </select>
+              </label>
+              <label>
+                Current mood
+                <select name="mood">
+                  <option>Hopeful</option>
+                  <option>Confused</option>
+                  <option>Restless</option>
+                  <option>Inspired</option>
+                  <option>Guarded</option>
+                </select>
+              </label>
+            </div>
+
+            <label>
+              Zodiac sign
+              <select name="zodiac">
+                <option value="">Use my birth date</option>
+                <option>Aries</option>
+                <option>Taurus</option>
+                <option>Gemini</option>
+                <option>Cancer</option>
+                <option>Leo</option>
+                <option>Virgo</option>
+                <option>Libra</option>
+                <option>Scorpio</option>
+                <option>Sagittarius</option>
+                <option>Capricorn</option>
+                <option>Aquarius</option>
+                <option>Pisces</option>
+              </select>
+            </label>
+
+            <label>
+              Question
+              <textarea
+                name="question"
+                rows="4"
+                maxlength="280"
+                data-count-source
+                required
+              >What should I understand before I make my next romantic decision?</textarea>
+              <small class="counter" data-counter-for="question"></small>
+            </label>
+
+            <button class="primary-button" type="submit">Reveal my reading</button>
+          </form>
+        </section>
+
+        <section class="reading-band" id="results" aria-live="polite">
+          <div class="section-heading">
+            <p class="eyebrow">Generated reading</p>
+            <h2 id="readingTitle">Your oracle spread</h2>
+            <p id="readingSubtitle">
+              Your personal pattern appears here with a three-card spread, zodiac timing,
+              numerology signal, and a next-step ritual.
+            </p>
+            <div class="status-row">
+              <span id="zodiacSignal">Zodiac: Scorpio</span>
+              <span id="lifePathSignal">Life path: 5</span>
+              <span id="resonanceSignal">Resonance: 84</span>
+            </div>
+          </div>
+
+          <div class="reading-layout">
+            <article class="archetype-panel">
+              <span class="section-label">Core archetype</span>
+              <h3 id="archetypeName">The Tide Walker</h3>
+              <p id="archetypeText">
+                You are moving through a threshold where emotional honesty matters more than
+                perfect timing.
+              </p>
+              <div class="moon-meter" style="--phase: 72">
+                <span id="moonPhase">Waxing insight</span>
+              </div>
+            </article>
+
+            <div class="card-spread" id="cardSpread">
+              <article class="oracle-card">
+                <span>Past</span>
+                <h3>The Lantern</h3>
+                <p>A quiet truth is becoming easier to name.</p>
+              </article>
+              <article class="oracle-card">
+                <span>Present</span>
+                <h3>The Mirror</h3>
+                <p>Your current situation is reflecting a choice you already feel.</p>
+              </article>
+              <article class="oracle-card">
+                <span>Next step</span>
+                <h3>The Key</h3>
+                <p>One simple action unlocks more than a dramatic announcement.</p>
+              </article>
+            </div>
+          </div>
+
+          <div class="insight-grid">
+            <article class="insight-card">
+              <div class="card-head">
+                <h3>Main message</h3>
+                <button class="copy-button" type="button" data-copy-target="mainMessage">Copy</button>
+              </div>
+              <p id="mainMessage">
+                Choose the answer that makes your body soften, not the answer that only looks
+                impressive from the outside.
+              </p>
+            </article>
+
+            <article class="insight-card">
+              <h3>Next 7 days</h3>
+              <p id="weekMessage">
+                Make one decision smaller. The path clears when the pressure drops.
+              </p>
+            </article>
+
+            <article class="insight-card">
+              <h3>Lucky signs</h3>
+              <ul id="luckySigns">
+                <li>Color: sea green</li>
+                <li>Number: 5</li>
+                <li>Timing: late afternoon</li>
+              </ul>
+            </article>
+
+            <article class="insight-card">
+              <h3>Mini ritual</h3>
+              <p id="ritualMessage">
+                Write the question once, write the feared answer once, then write the kindest
+                honest answer once.
+              </p>
+            </article>
+          </div>
+
+          <div class="action-row">
+            <button class="primary-button" type="button" id="copyReadingButton">Copy full reading</button>
+            <button class="ghost-button" type="button" id="saveReadingButton">Save reading</button>
+          </div>
+        </section>
+
+        <section class="ritual-band" id="rituals">
+          <div class="section-heading">
+            <p class="eyebrow">Daily ritual</p>
+            <h2>A free oracle room worth returning to</h2>
+            <p>
+              The site now focuses on a memorable free reading experience: card pull,
+              zodiac signal, numerology pattern, lucky signs, and a short ritual.
+            </p>
+          </div>
+
+          <div class="ritual-grid">
+            <article class="ritual-card">
+              <span>01</span>
+              <h3>Ask the veil</h3>
+              <p>Write one question that feels alive today. Keep it honest, simple, and specific.</p>
+            </article>
+            <article class="ritual-card featured">
+              <span>02</span>
+              <h3>Read the pattern</h3>
+              <p>The spread blends three cards with zodiac timing and your life path number.</p>
+            </article>
+            <article class="ritual-card">
+              <span>03</span>
+              <h3>Carry one sign</h3>
+              <p>Use the color, number, timing, or mini ritual as a small anchor for the day.</p>
+            </article>
+          </div>
+
+          <div class="symbol-river" aria-label="Oracle symbols">
+            <span>Moon</span>
+            <span>Mirror</span>
+            <span>Gate</span>
+            <span>Lantern</span>
+            <span>River</span>
+            <span>Crown</span>
+          </div>
+        </section>
+
+        <section class="content-band" id="faq">
+          <div class="section-heading">
+            <p class="eyebrow">Customer safety</p>
+            <h2>Clear boundaries keep the offer safer</h2>
+          </div>
+
+          <div class="faq-grid">
+            <article class="faq-item">
+              <h3>What is this for?</h3>
+              <p>
+                Moonveil Oracle is for entertainment, journaling, self-reflection, and creative
+                perspective. Users should make their own decisions.
+              </p>
+            </article>
+            <article class="faq-item">
+              <h3>What should it never promise?</h3>
+              <p>
+                It should not promise love, money, healing, pregnancy, legal outcomes, investment
+                returns, or contact from a specific person.
+              </p>
+            </article>
+            <article class="faq-item">
+              <h3>How should users treat it?</h3>
+              <p>
+                As a reflective prompt. The reading can help users name a feeling, choose a small
+                next step, or journal through a question without treating it as certainty.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <span>Moonveil Oracle provides entertainment and reflection content only.</span>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </footer>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">Saved</div>
+    <script src="app.js"></script>
+  </body>
+</html>
